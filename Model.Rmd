@@ -17,6 +17,11 @@ data <- data.frame(new_data)
 ```
 
 ```{r}
+summary(data)
+```
+
+
+```{r}
 nrow(subset(data, label == 1))/nrow(data)
 nrow(subset(data, label == 0))/nrow(data)
 ```
@@ -28,7 +33,11 @@ data$label = as.factor(data$label)
 ```{r}
 test = subset(data, id == 1)
 train = subset(data, id != 1)
+nrow(data)
+nrow(test)
+nrow(train)
 ```
+
 
 ```{r}
 colnames(train)
