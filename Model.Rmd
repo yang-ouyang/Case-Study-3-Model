@@ -87,6 +87,7 @@ rf <- function(train_sample, test_sample, predictors){
   if (mean(test_sample$label == predict_rf) == 1){
     df <- data.frame(importance(model_rf, type = 1))
     print(df)
+    cat('\n')
   }
 }
 ```
@@ -178,107 +179,107 @@ for (i in 2:length(predictor_vars)){
 * Let us do cross validation. 
 
 ```{r}
-cv <- data.frame(matrix(ncol = 16, nrow = 14))
-rownames(cv) <- c("wrist_physio acc", "wrist_physio auc", "chest_ecg acc", "chest_ecg auc", "chest_physio acc", "chest_physio auc", "all_wrist acc", "all_wrist auc", "all_chest acc", "all_chest auc", "all_physio acc", "all_physio auc", "all_modalities acc", "all_modalities auc")
-colnames(cv) <- c("predictor", c(1:15))
-cv$predictor <- c("wrist_physio", "wrist_physio", "chest_ecg", "chest_ecg", "chest_physio", "chest_physio", "all_wrist", "all_wrist", "all_chest", "all_chest", "all_physio", "all_physio", "all_modalities", "all_modalities")
+# cv <- data.frame(matrix(ncol = 16, nrow = 14))
+# rownames(cv) <- c("wrist_physio acc", "wrist_physio auc", "chest_ecg acc", "chest_ecg auc", "chest_physio acc", "chest_physio auc", "all_wrist acc", "all_wrist auc", "all_chest acc", "all_chest auc", "all_physio acc", "all_physio auc", "all_modalities acc", "all_modalities auc")
+# colnames(cv) <- c("predictor", c(1:15))
+# cv$predictor <- c("wrist_physio", "wrist_physio", "chest_ecg", "chest_ecg", "chest_physio", "chest_physio", "all_wrist", "all_wrist", "all_chest", "all_chest", "all_physio", "all_physio", "all_modalities", "all_modalities")
 ```
 
 ```{r}
-cv
+# cv
 ```
 
 ```{r}
-for(i in 1:7){
-  for (j in 1:15){
-    set.seed(1)
-    test = subset(data, id == j)
-    train = subset(data, id != j)
-    test_sample = test
-    
-    # Run this instead to train on the full train set
-    # test_sample = train
-    train_indices = sample(nrow(train), 100)
-    train_sample = train[train_indices,]
-    
-    predictor = cv$predictor[(i-1)*2+1]
-    predictors = eval(parse(text = predictor))
-    model_rf <- randomForest(as.formula(paste("label ~ ", paste(predictors, collapse = ' + '))), ntree = 500, importance = FALSE, data = train_sample)
-    predict_rf <- predict(model_rf, test_sample)
-    acc = mean(test_sample$label == predict_rf)*100
-    auc = AUC(as.numeric(as.character(predict_rf)), as.numeric(as.character(test_sample$label)))
-    
-    cv[(i-1)*2+1,j+1] <- acc
-    cv[(i-1)*2+2,j+1] <- auc
-  }
-}
+# for(i in 1:7){
+#   for (j in 1:15){
+#     set.seed(1)
+#     test = subset(data, id == j)
+#     train = subset(data, id != j)
+#     test_sample = test
+#     
+#     # Run this instead to train on the full train set
+#     # test_sample = train
+#     train_indices = sample(nrow(train), 100)
+#     train_sample = train[train_indices,]
+#     
+#     predictor = cv$predictor[(i-1)*2+1]
+#     predictors = eval(parse(text = predictor))
+#     model_rf <- randomForest(as.formula(paste("label ~ ", paste(predictors, collapse = ' + '))), ntree = 500, importance = FALSE, data = train_sample)
+#     predict_rf <- predict(model_rf, test_sample)
+#     acc = mean(test_sample$label == predict_rf)*100
+#     auc = AUC(as.numeric(as.character(predict_rf)), as.numeric(as.character(test_sample$label)))
+#     
+#     cv[(i-1)*2+1,j+1] <- acc
+#     cv[(i-1)*2+2,j+1] <- auc
+#   }
+# }
 
 ```
 
 ```{r}
-cv
+# cv
 ```
 ## Let us use fewer training samples
 
 ### 1000 Training Samples
 
 ```{r}
-for(i in 1:7){
-  for (j in 1:15){
-    set.seed(1)
-    test = subset(data, id == j)
-    train = subset(data, id != j)
-    test_sample = test
-    
-    train_indices = sample(nrow(train), 1000)
-    train_sample = train[train_indices,]
-    
-    predictor = cv$predictor[(i-1)*2+1]
-    predictors = eval(parse(text = predictor))
-    model_rf <- randomForest(as.formula(paste("label ~ ", paste(predictors, collapse = ' + '))), ntree = 500, importance = FALSE, data = train_sample)
-    predict_rf <- predict(model_rf, test_sample)
-    acc = mean(test_sample$label == predict_rf)*100
-    auc = AUC(as.numeric(predict_rf), as.numeric(test_sample$label))
-    
-    cv[(i-1)*2+1,j+1] <- acc
-    cv[(i-1)*2+2,j+1] <- auc
-  }
-}
+# for(i in 1:7){
+#   for (j in 1:15){
+#     set.seed(1)
+#     test = subset(data, id == j)
+#     train = subset(data, id != j)
+#     test_sample = test
+#     
+#     train_indices = sample(nrow(train), 1000)
+#     train_sample = train[train_indices,]
+#     
+#     predictor = cv$predictor[(i-1)*2+1]
+#     predictors = eval(parse(text = predictor))
+#     model_rf <- randomForest(as.formula(paste("label ~ ", paste(predictors, collapse = ' + '))), ntree = 500, importance = FALSE, data = train_sample)
+#     predict_rf <- predict(model_rf, test_sample)
+#     acc = mean(test_sample$label == predict_rf)*100
+#     auc = AUC(as.numeric(predict_rf), as.numeric(test_sample$label))
+#     
+#     cv[(i-1)*2+1,j+1] <- acc
+#     cv[(i-1)*2+2,j+1] <- auc
+#   }
+# }
 
 ```
 
 ```{r}
-cv
+# cv
 ```
 
 ### 100 Training Samples
 
 ```{r}
-for(i in 1:7){
-  for (j in 1:15){
-    set.seed(1)
-    test = subset(data, id == j)
-    train = subset(data, id != j)
-    test_sample = test
-    
-    train_indices = sample(nrow(train), 100)
-    train_sample = train[train_indices,]
-    
-    predictor = cv$predictor[(i-1)*2+1]
-    predictors = eval(parse(text = predictor))
-    model_rf <- randomForest(as.formula(paste("label ~ ", paste(predictors, collapse = ' + '))), ntree = 500, importance = FALSE, data = train_sample)
-    predict_rf <- predict(model_rf, test_sample)
-    acc = mean(test_sample$label == predict_rf)*100
-    auc = AUC(as.numeric(predict_rf), as.numeric(test_sample$label))
-    
-    cv[(i-1)*2+1,j+1] <- acc
-    cv[(i-1)*2+2,j+1] <- auc
-  }
-}
+# for(i in 1:7){
+#   for (j in 1:15){
+#     set.seed(1)
+#     test = subset(data, id == j)
+#     train = subset(data, id != j)
+#     test_sample = test
+#     
+#     train_indices = sample(nrow(train), 100)
+#     train_sample = train[train_indices,]
+#     
+#     predictor = cv$predictor[(i-1)*2+1]
+#     predictors = eval(parse(text = predictor))
+#     model_rf <- randomForest(as.formula(paste("label ~ ", paste(predictors, collapse = ' + '))), ntree = 500, importance = FALSE, data = train_sample)
+#     predict_rf <- predict(model_rf, test_sample)
+#     acc = mean(test_sample$label == predict_rf)*100
+#     auc = AUC(as.numeric(predict_rf), as.numeric(test_sample$label))
+#     
+#     cv[(i-1)*2+1,j+1] <- acc
+#     cv[(i-1)*2+2,j+1] <- auc
+#   }
+# }
 
 ```
 
 ```{r}
-cv
+# cv
 ```
 
