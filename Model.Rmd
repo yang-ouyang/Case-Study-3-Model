@@ -20,7 +20,6 @@ data <- data.frame(new_data)
 summary(data)
 ```
 
-
 ```{r}
 nrow(subset(data, label == 1))/nrow(data)
 nrow(subset(data, label == 0))/nrow(data)
@@ -31,13 +30,12 @@ data$label = as.factor(data$label)
 ```
 
 ```{r}
-test = subset(data, id == 1)
-train = subset(data, id != 1)
+test = subset(data, id == 14)
+train = subset(data, id != 14)
 nrow(data)
 nrow(test)
 nrow(train)
 ```
-
 
 ```{r}
 colnames(train)
@@ -112,6 +110,13 @@ for (i in 1:length(predictor_vars)){
 }
 ```
 
+```{r}
+for (i in 2:length(predictor_vars)){
+  cat("Predictors: personal +", predictor_vars[i], "\n")
+  rf(train_sample, test_sample, c(eval(parse(text = predictor_vars[1])), eval(parse(text = predictor_vars[i]))))
+}
+```
+
 ## LDA
 
 ```{r}
@@ -127,6 +132,13 @@ LDA <- function(train_sample, test_sample, predictors){
 for (i in 1:length(predictor_vars)){
   cat("Predictors: ", predictor_vars[i], "\n")
   LDA(train_sample, test_sample, eval(parse(text = predictor_vars[i])))
+}
+```
+
+```{r warning = FALSE}
+for (i in 2:length(predictor_vars)){
+  cat("Predictors: personal +", predictor_vars[i], "\n")
+  LDA(train_sample, test_sample, c(eval(parse(text = predictor_vars[1])), eval(parse(text = predictor_vars[i]))))
 }
 ```
 
@@ -148,6 +160,14 @@ for (i in 1:length(predictor_vars)){
   logistic(train_sample, test_sample, eval(parse(text = predictor_vars[i])))
 }
 ```
+
+```{r warning = FALSE}
+for (i in 2:length(predictor_vars)){
+  cat("Predictors: personal +", predictor_vars[i], "\n")
+  logistic(train_sample, test_sample, c(eval(parse(text = predictor_vars[1])), eval(parse(text = predictor_vars[i]))))
+}
+```
+
 
 # We choose the Random Forest
 

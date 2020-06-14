@@ -787,10 +787,10 @@ new_data$label[new_data$label == 4] &lt;- 1
 new_data$label[new_data$label == 1] &lt;- 0
 new_data$label[new_data$label == 2] &lt;- 1</code></pre>
 <pre class="r"><code>nrow(new_data)</code></pre>
-<pre><code>## [1] 173340</code></pre>
+<pre><code>## [1] 179832</code></pre>
 <pre class="r"><code>new_data &lt;- new_data[rowSums(is.na(new_data)) == 0,]
 nrow(new_data)</code></pre>
-<pre><code>## [1] 173340</code></pre>
+<pre><code>## [1] 179817</code></pre>
 <pre class="r"><code>save(new_data, file = &quot;final_data.rda&quot;)</code></pre>
 </div>
 </div>
