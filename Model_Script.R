@@ -2,8 +2,10 @@ library(randomForest)
 library(MASS)
 library(cvAUC)
 
+
 load("final_data.rda")
 data <- data.frame(new_data)
+options(warn = -1)
 
 summary(data)
 
@@ -44,8 +46,15 @@ predictor_vars <- c("personal", "wrist_acc", "chest_acc", "wrist_bvp",
                     "chest_physio", "all_wrist", "all_chest", "all_physio", 
                     "all_modalities")
 
-train_sample = train
 test_sample = test
+
+set.seed(1)
+train_indices = sample(nrow(train), 1000)
+train_sample = train[train_indices,]
+
+# Run this instead to train RF on full training set
+# train_sample = train
+
 
 rf <- function(train_sample, test_sample, predictors){
   set.seed(1)
@@ -77,6 +86,8 @@ for (i in 2:length(predictor_vars)){
   cat("Predictors: personal +", predictor_vars[i], "\n")
   rf(train_sample, test_sample, c(eval(parse(text = predictor_vars[1])), eval(parse(text = predictor_vars[i]))))
 }
+
+train_sample = train
 
 LDA <- function(train_sample, test_sample, predictors){
   model_lda <- lda(as.formula(paste("label ~ ", paste(predictors, collapse = ' + '))), data = train_sample)
@@ -112,41 +123,4 @@ for (i in 2:length(predictor_vars)){
   cat("Predictors: personal +", predictor_vars[i], "\n")
   logistic(train_sample, test_sample, c(eval(parse(text = predictor_vars[1])), eval(parse(text = predictor_vars[i]))))
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
