@@ -1,0 +1,53 @@
+---
+title: "Case Study 3 Model"
+output: html_document
+---
+
+```{r}
+load("final_data.rda")
+data <- data.frame(new_data)
+```
+
+# Sample code
+
+```{r}
+train = data[c(500:1000),]
+test = data[c(1000:1500),]
+```
+
+## Random Forest
+
+```{r}
+get_accuracy_rf <- function(train_set, test_set){
+  model_rf <- randomForest(as.factor(label) ~ ., ntree = 500, importance = TRUE, data = train_set)
+  
+  predict_rf <- predict(model_rf, test_set)
+  
+  compare_rf <- data.frame(true_value = test_set$label,
+                           predicted_value = predict_rf,
+                           model = 'random_forest',
+                           stringsAsFactors = FALSE)
+  
+  return(mean(compare_rf$true_value == compare_rf$predicted_value)*100)
+}
+```
+
+## Gradient Boosted Decision Trees
+
+```{r}
+get_accuracy_gb <- function(train_set, test_set){
+  matrix_train_gb <- xgb.DMatrix(data = as.matrix(train_set[,-1]), label = train_set[,1])
+  matrix_test_gb <- xgb.DMatrix(data = as.matrix(test_set[,-1]), label = test_set[,1])
+  model_gb <- xgboost(data = matrix_train_gb, 
+                      nrounds = 100,
+                      verbose = FALSE,
+                      params = list(objective = "multi:softmax", num_class = 2 + 1))
+  predict_gb <- predict(model_gb, matrix_test_gb)
+  compare_gb <- data.frame(true_value = test_set[,1],
+                           predicted_value = predict_gb,
+                           model = 'xgboost',
+                           stringsAsFactors = FALSE) 
+  
+  return(mean(compare_gb$true_value == compare_gb$predicted_value)*100)
+}
+```
