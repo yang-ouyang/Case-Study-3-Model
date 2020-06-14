@@ -5,21 +5,13 @@ output: html_document
 
 ```{r}
 library(zoo)
-library(DescTools)
 library(MESS)
 library(splus2R)
-library(randomForest)
-library(xgboost)
 ```
 
 ```{r}
 load("data.rda")
 data <- data.frame(data)
-```
-
-```{r}
-n <- nrow(data)/15
-n
 ```
 
 ```{r}
@@ -82,15 +74,6 @@ for (i in 1:15){
   breaths = c(breaths, rollapply(subdata$chest_Resp, 240, get_breaths, fill = NA))
 }
 data$breath_rate <- breaths
-```
-
-```{r}
-save(data, file = "data2.rda")
-```
-
-```{r}
-load("data2.rda")
-data
 ```
 
 ```{r}
@@ -455,12 +438,17 @@ new_data = data[,c("id", "label", "Age", "Height", "Weight", "Gender",
 ```
 
 ```{r}
-new_data = subset(new_data, label == 1 | label == 2 | label == 3)
+new_data = subset(new_data, label == 1 | label == 2 | label == 3 | label == 4)
 ```
 
 ```{r}
 # Not stress is 1, stress is 2
 new_data$label[new_data$label == 3] <- 1
+new_data$label[new_data$label == 4] <- 1
+
+# Stress is 1, Not-stress is 0
+new_data$label[new_data$label == 1] <- 0
+new_data$label[new_data$label == 2] <- 1
 ```
 
 ```{r}
