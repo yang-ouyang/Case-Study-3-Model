@@ -6,6 +6,7 @@ output:
 ---
 
 ```{r}
+library(dplyr) #0.8.5
 library(randomForest) #4.6-14
 library(MASS) #7.3-51.5
 library(cvAUC) #1.1.0
@@ -19,7 +20,9 @@ data <- data.frame(new_data)
 
 ```{r}
 #EDA
+nrow(data)
 summary(data)
+data %>% group_by(id) %>% tally()
 ```
 
 ```{r}

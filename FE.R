@@ -1,16 +1,21 @@
-library(zoo)
-library(MESS)
-library(splus2R)
+library(dplyr) #0.8.5
+library(zoo) #1.8-8
+library(MESS) #0.5.6
+library(splus2R) #1.2-2
 
 
 load("data.rda")
 data <- data.frame(data)
 
+#EDA
+data %>% group_by(id) %>% tally()
+
+# Convert BVP_HB to Heart Rate
+
 options(warn = -1)
 HB <- function(vec){
   return(vec[length(vec)] - vec[1])
 }
-
 BVP_HB = c()
 for (i in 1:15){
   subdata = subset(data, id == i)
@@ -18,12 +23,16 @@ for (i in 1:15){
 }
 data$BVP_HR <- BVP_HB
 
+# Convert ECG_HB to Heart Rate
+
 ECG_HB = c()
 for (i in 1:15){
   subdata = subset(data, id == i)
   ECG_HB = c(ECG_HB, rollapply(subdata$HB_ECG, 241, HB, fill = NA))
 }
 data$ECG_HR <- ECG_HB
+
+# Convert chest_Resp to Volume
 
 volume <- function(dat){
   return(auc(x = seq(1, length(dat), 1), y = dat, absolutearea = TRUE))
@@ -36,6 +45,8 @@ for (i in 1:15){
 }
 data$Resp_Volume <- Volume
 
+# Convert chest_Resp to Range
+
 get_range <- function(vec){
   max_min = range(vec)
   return(max_min[2]-max_min[1])
@@ -47,6 +58,8 @@ for (i in 1:15){
 }
 data$Resp_range <- Resp_range
 
+# Convert chest_Resp to breaths in a minute
+
 get_breaths <- function(dat){
   return(sum(peaks(dat, span = 9)))
 }
@@ -56,6 +69,8 @@ for (i in 1:15){
   breaths = c(breaths, rollapply(subdata$chest_Resp, 240, get_breaths, fill = NA))
 }
 data$breath_rate <- breaths
+
+# Store personal particulars
 
 ls = list()
 ls[[1]] = data.frame(matrix(c(27, 175, 80, 1), nrow = 1, ncol = 4))
@@ -76,6 +91,8 @@ ls[[15]] = data.frame(matrix(c(29, 165, 55, 0), nrow = 1, ncol = 4))
 for (i in 1:15){
   colnames(ls[[i]]) = c("Age", "Height", "Weight", "Gender")
 }
+
+# Add personal particulars to data
 
 new_data = data.frame()
 for (i in 1:15){
@@ -402,6 +419,8 @@ new_data = data[,c("id", "label", "Age", "Height", "Weight", "Gender",
                    "Temp_chest_mean", "Temp_chest_sd", "Temp_chest_min", "Temp_chest_max", "Temp_chest_range",
                    "Temp_chest_slope")]
 
+# Take data with usable labels
+
 new_data = subset(new_data, label == 1 | label == 2 | label == 3 | label == 4)
 
 # Not stress is 1, stress is 2
@@ -412,7 +431,7 @@ new_data$label[new_data$label == 4] <- 1
 new_data$label[new_data$label == 1] <- 0
 new_data$label[new_data$label == 2] <- 1
 
-
+# Remove rows with NAs (there are none)
 nrow(new_data)
 new_data <- new_data[rowSums(is.na(new_data)) == 0,]
 nrow(new_data)
