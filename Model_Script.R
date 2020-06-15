@@ -47,6 +47,9 @@ predictor_vars <- c("personal", "wrist_acc", "chest_acc", "wrist_bvp",
 
 test_sample = test
 
+# Set train set to be 1000 random samples from training samples
+# One may amend this line to train on the full dataset to verify claims 
+
 set.seed(1)
 train_indices = sample(nrow(train), 1000)
 train_sample = train[train_indices,]

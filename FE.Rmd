@@ -4,9 +4,9 @@ output: html_document
 ---
 
 ```{r}
-library(zoo)
-library(MESS)
-library(splus2R)
+library(zoo) #1.8-8
+library(MESS) #0.5.6
+library(splus2R) #1.2-2
 ```
 
 ```{r}
@@ -15,12 +15,10 @@ data <- data.frame(data)
 ```
 
 ```{r}
+# Convert BVP_HB to Heart Rate
 HB <- function(vec){
   return(vec[length(vec)] - vec[1])
 }
-```
-
-```{r}
 BVP_HB = c()
 for (i in 1:15){
   subdata = subset(data, id == i)
@@ -30,6 +28,7 @@ data$BVP_HR <- BVP_HB
 ```
 
 ```{r}
+# Convert ECG_HB to Heart Rate
 ECG_HB = c()
 for (i in 1:15){
   subdata = subset(data, id == i)
@@ -39,6 +38,7 @@ data$ECG_HR <- ECG_HB
 ```
 
 ```{r warning=FALSE}
+# Convert chest_Resp to Volume
 volume <- function(dat){
   return(auc(x = seq(1, length(dat), 1), y = dat, absolutearea = TRUE))
 }
@@ -52,6 +52,7 @@ data$Resp_Volume <- Volume
 ```
 
 ```{r}
+# Convert chest_Resp to Range
 get_range <- function(vec){
   max_min = range(vec)
   return(max_min[2]-max_min[1])
@@ -65,6 +66,7 @@ data$Resp_range <- Resp_range
 ```
 
 ```{r}
+# Convert chest_Resp to breaths in a minute
 get_breaths <- function(dat){
   return(sum(peaks(dat, span = 9)))
 }
@@ -77,6 +79,7 @@ data$breath_rate <- breaths
 ```
 
 ```{r}
+# Store personal particulars
 ls = list()
 ls[[1]] = data.frame(matrix(c(27, 175, 80, 1), nrow = 1, ncol = 4))
 ls[[2]] = data.frame(matrix(c(27, 173, 69, 1), nrow = 1, ncol = 4))
@@ -99,6 +102,7 @@ for (i in 1:15){
 ```
 
 ```{r}
+# Add personal particulars to data
 new_data = data.frame()
 for (i in 1:15){
   subdata = subset(data, id == i)
@@ -111,8 +115,8 @@ for (i in 1:15){
 data <- new_data
 ```
 
-#ACC chest sliding window calculations
 ```{r}
+#ACC chest sliding window calculations
 ACC_chest_mean = c()
 ACC_chest_sd = c()
 ACC_wrist_mean = c()
@@ -236,6 +240,7 @@ for (i in 1:15){
   EDA_chest_range = c(EDA_chest_range, rollapply(subdata$chest_EDA, 240, get_range, fill = NA))
 }
 
+# All slopes shall be 1s
 for (i in 1:15){
   subdata = subset(data, id == i)
   EDA_chest_slope = c(EDA_chest_slope, rollapply(subdata$chest_EDA, 5, slope, fill = NA))
@@ -452,10 +457,13 @@ new_data$label[new_data$label == 2] <- 1
 ```
 
 ```{r}
+# Remove rows with NAs 
 nrow(new_data)
 new_data <- new_data[rowSums(is.na(new_data)) == 0,]
 nrow(new_data)
 ```
+
+* We note that there are no rows with NAs
 
 ```{r}
 save(new_data, file = "final_data.rda")
