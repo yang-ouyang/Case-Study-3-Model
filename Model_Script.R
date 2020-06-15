@@ -55,7 +55,6 @@ train_sample = train[train_indices,]
 # Run this instead to train RF on full training set
 # train_sample = train
 
-
 rf <- function(train_sample, test_sample, predictors){
   set.seed(1)
   model_rf <- randomForest(as.formula(paste("label ~ ", paste(predictors, collapse = ' + '))), ntree = 500, importance = TRUE, data = train_sample)
