@@ -273,7 +273,7 @@ EMG_sd <- c()
 EMG_range <- c()
 for (i in 1:15){
   subdata = subset(data, id == i)
-  EMG_mean = c(EMG_mean, rollapply(subdata$chest_EMG, 240, slope, fill = NA))
+  EMG_mean = c(EMG_mean, rollapply(subdata$chest_EMG, 240, mean, fill = NA))
 }
 
 for (i in 1:15){

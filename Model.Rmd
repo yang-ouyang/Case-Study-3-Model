@@ -170,11 +170,11 @@ for (i in 2:length(predictor_vars)){
 ```
 
 
-# We choose the Random Forest
+# We choose the Random Forest & LDA
 
 ## Cross-Validation 
 
-* We got 100 percent accuracy for predictors wrist_physio, chest_ecg, chest_physio, all_wrist, all_chest, all_physio, all_modalities 
+* We choose predictors that we got > 97% accuracy.
 
 * Let us do cross validation. 
 

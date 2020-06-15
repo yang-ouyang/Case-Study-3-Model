@@ -2,7 +2,6 @@ library(randomForest)
 library(MASS)
 library(cvAUC)
 
-
 load("final_data.rda")
 data <- data.frame(new_data)
 options(warn = -1)
@@ -86,8 +85,6 @@ for (i in 2:length(predictor_vars)){
   rf(train_sample, test_sample, c(eval(parse(text = predictor_vars[1])), eval(parse(text = predictor_vars[i]))))
 }
 
-train_sample = train
-
 LDA <- function(train_sample, test_sample, predictors){
   model_lda <- lda(as.formula(paste("label ~ ", paste(predictors, collapse = ' + '))), data = train_sample)
   predict_lda <- predict(model_lda, test_sample)[[1]]
@@ -122,4 +119,211 @@ for (i in 2:length(predictor_vars)){
   cat("Predictors: personal +", predictor_vars[i], "\n")
   logistic(train_sample, test_sample, c(eval(parse(text = predictor_vars[1])), eval(parse(text = predictor_vars[i]))))
 }
+
+# Cross Validation
+
+## RF - no personal
+
+cv <- data.frame(matrix(ncol = 16, nrow = 12))
+rownames(cv) <- c("wrist_physio acc", "wrist_physio auc", "chest_physio acc", "chest_physio auc", "all_wrist acc", "all_wrist auc", "all_chest acc", "all_chest auc", "all_physio acc", "all_physio auc", "all_modalities acc", "all_modalities auc")
+colnames(cv) <- c("predictor", c(1:15))
+cv$predictor <- c("wrist_physio", "wrist_physio", "chest_physio", "chest_physio", "all_wrist", "all_wrist", "all_chest", "all_chest", "all_physio", "all_physio", "all_modalities", "all_modalities")
+
+for(i in 1:6){
+  for (j in 1:15){
+    set.seed(1)
+    test = subset(data, id == j)
+    train = subset(data, id != j)
+    test_sample = test
+    
+    # Run this instead to train on the full train set
+    # test_sample = train
+    train_indices = sample(nrow(train), 1000)
+    train_sample = train[train_indices,]
+    
+    predictor = cv$predictor[(i-1)*2+1]
+    predictors = eval(parse(text = predictor))
+    model_rf <- randomForest(as.formula(paste("label ~ ", paste(predictors, collapse = ' + '))), ntree = 500, importance = FALSE, data = train_sample)
+    predict_rf <- predict(model_rf, test_sample)
+    acc = mean(test_sample$label == predict_rf)*100
+    auc = AUC(as.numeric(as.character(predict_rf)), as.numeric(as.character(test_sample$label)))
+    
+    cv[(i-1)*2+1,j+1] <- acc
+    cv[(i-1)*2+2,j+1] <- auc
+  }
+}
+
+rowMeans(cv[,c(2:16)])
+rowSds(as.matrix(cv[,c(2:16)]))
+
+## RF - with personal
+
+cv <- data.frame(matrix(ncol = 16, nrow = 12))
+rownames(cv) <- c("wrist_physio acc", "wrist_physio auc", "chest_physio acc", "chest_physio auc", "all_wrist acc", "all_wrist auc", "all_chest acc", "all_chest auc", "all_physio acc", "all_physio auc", "all_modalities acc", "all_modalities auc")
+colnames(cv) <- c("predictor", c(1:15))
+cv$predictor <- c("wrist_physio", "wrist_physio", "chest_physio", "chest_physio", "all_wrist", "all_wrist", "all_chest", "all_chest", "all_physio", "all_physio", "all_modalities", "all_modalities")
+
+for(i in 1:6){
+  for (j in 1:15){
+    set.seed(1)
+    test = subset(data, id == j)
+    train = subset(data, id != j)
+    test_sample = test
+    
+    # Run this instead to train on the full train set
+    # test_sample = train
+    train_indices = sample(nrow(train), 1000)
+    train_sample = train[train_indices,]
+    
+    predictor = cv$predictor[(i-1)*2+1]
+    predictors = eval(parse(text = predictor))
+    model_rf <- randomForest(as.formula(paste("label ~ ", paste(c(eval(parse(text = predictor_vars[1])), predictors), collapse = ' + '))), ntree = 500, importance = FALSE, data = train_sample)
+    predict_rf <- predict(model_rf, test_sample)
+    acc = mean(test_sample$label == predict_rf)*100
+    auc = AUC(as.numeric(as.character(predict_rf)), as.numeric(as.character(test_sample$label)))
+    
+    cv[(i-1)*2+1,j+1] <- acc
+    cv[(i-1)*2+2,j+1] <- auc
+  }
+}
+
+rowMeans(cv[,c(2:16)])
+rowSds(as.matrix(cv[,c(2:16)]))
+
+## LDA - no personal
+
+cv <- data.frame(matrix(ncol = 16, nrow = 16))
+rownames(cv) <- c("wrist_bvp acc", "wrist_bvp auc", "wrist_physio acc", "wrist_physio auc", "chest_ecg acc", "chest_ecg auc", "chest_physio acc", "chest_physio auc", "all_wrist acc", "all_wrist auc", "all_chest acc", "all_chest auc", "all_physio acc", "all_physio auc", "all_modalities acc", "all_modalities auc")
+colnames(cv) <- c("predictor", c(1:15))
+cv$predictor <- c("wrist_bvp", "wrist_bvp","wrist_physio", "wrist_physio", "chest_ecg", "chest_ecg", "chest_physio", "chest_physio", "all_wrist", "all_wrist", "all_chest", "all_chest", "all_physio", "all_physio", "all_modalities", "all_modalities")
+
+for(i in 1:8){
+  for (j in 1:15){
+    set.seed(1)
+    test = subset(data, id == j)
+    train = subset(data, id != j)
+    
+    test_sample = test
+    # Run this instead to train on the full train set
+    # test_sample = train
+    train_indices = sample(nrow(train), 1000)
+    train_sample = train[train_indices,]
+    
+    predictor = cv$predictor[(i-1)*2+1]
+    predictors = eval(parse(text = predictor))
+    model_lda <- lda(as.formula(paste("label ~ ", paste(predictors, collapse = ' + '))), data = train_sample)
+    predict_lda <- predict(model_lda, test_sample)[[1]]
+    acc = mean(test_sample$label == predict_lda)*100
+    auc = AUC(as.numeric(as.character(predict_lda)), as.numeric(as.character(test_sample$label)))
+    
+    cv[(i-1)*2+1,j+1] <- acc
+    cv[(i-1)*2+2,j+1] <- auc
+  }
+}
+
+rowMeans(cv[,c(2:16)])
+rowSds(as.matrix(cv[,c(2:16)]))
+
+## LDA - with personal
+
+cv <- data.frame(matrix(ncol = 16, nrow = 16))
+rownames(cv) <- c("wrist_bvp acc", "wrist_bvp auc", "wrist_physio acc", "wrist_physio auc", "chest_ecg acc", "chest_ecg auc", "chest_physio acc", "chest_physio auc", "all_wrist acc", "all_wrist auc", "all_chest acc", "all_chest auc", "all_physio acc", "all_physio auc", "all_modalities acc", "all_modalities auc")
+colnames(cv) <- c("predictor", c(1:15))
+cv$predictor <- c("wrist_bvp", "wrist_bvp","wrist_physio", "wrist_physio", "chest_ecg", "chest_ecg", "chest_physio", "chest_physio", "all_wrist", "all_wrist", "all_chest", "all_chest", "all_physio", "all_physio", "all_modalities", "all_modalities")
+
+for(i in 1:8){
+  for (j in 1:15){
+    set.seed(1)
+    test = subset(data, id == j)
+    train = subset(data, id != j)
+    
+    test_sample = test
+    # Run this instead to train on the full train set
+    # test_sample = train
+    train_indices = sample(nrow(train), 1000)
+    train_sample = train[train_indices,]
+    
+    predictor = cv$predictor[(i-1)*2+1]
+    predictors = eval(parse(text = predictor))
+    model_lda <- lda(as.formula(paste("label ~ ", paste(c(eval(parse(text = predictor_vars[1])), predictors), collapse = ' + '))), data = train_sample)
+    predict_lda <- predict(model_lda, test_sample)[[1]]
+    acc = mean(test_sample$label == predict_lda)*100
+    auc = AUC(as.numeric(as.character(predict_lda)), as.numeric(as.character(test_sample$label)))
+    
+    cv[(i-1)*2+1,j+1] <- acc
+    cv[(i-1)*2+2,j+1] <- auc
+  }
+}
+
+rowMeans(cv[,c(2:16)])
+rowSds(as.matrix(cv[,c(2:16)]))
+
+## Full Dataset
+
+## LDA - no personal
+
+cv <- data.frame(matrix(ncol = 16, nrow = 16))
+rownames(cv) <- c("wrist_bvp acc", "wrist_bvp auc", "wrist_physio acc", "wrist_physio auc", "chest_ecg acc", "chest_ecg auc", "chest_physio acc", "chest_physio auc", "all_wrist acc", "all_wrist auc", "all_chest acc", "all_chest auc", "all_physio acc", "all_physio auc", "all_modalities acc", "all_modalities auc")
+colnames(cv) <- c("predictor", c(1:15))
+cv$predictor <- c("wrist_bvp", "wrist_bvp","wrist_physio", "wrist_physio", "chest_ecg", "chest_ecg", "chest_physio", "chest_physio", "all_wrist", "all_wrist", "all_chest", "all_chest", "all_physio", "all_physio", "all_modalities", "all_modalities")
+
+for(i in 1:8){
+  for (j in 1:15){
+    set.seed(1)
+    test = subset(data, id == j)
+    train = subset(data, id != j)
+    
+    test_sample = test
+    train_sample = train
+    
+    predictor = cv$predictor[(i-1)*2+1]
+    predictors = eval(parse(text = predictor))
+    model_lda <- lda(as.formula(paste("label ~ ", paste(predictors, collapse = ' + '))), data = train_sample)
+    predict_lda <- predict(model_lda, test_sample)[[1]]
+    acc = mean(test_sample$label == predict_lda)*100
+    auc = AUC(as.numeric(as.character(predict_lda)), as.numeric(as.character(test_sample$label)))
+    
+    cv[(i-1)*2+1,j+1] <- acc
+    cv[(i-1)*2+2,j+1] <- auc
+  }
+}
+
+rowMeans(cv[,c(2:16)])
+rowSds(as.matrix(cv[,c(2:16)]))
+
+## LDA - with personal
+
+cv <- data.frame(matrix(ncol = 16, nrow = 16))
+rownames(cv) <- c("wrist_bvp acc", "wrist_bvp auc", "wrist_physio acc", "wrist_physio auc", "chest_ecg acc", "chest_ecg auc", "chest_physio acc", "chest_physio auc", "all_wrist acc", "all_wrist auc", "all_chest acc", "all_chest auc", "all_physio acc", "all_physio auc", "all_modalities acc", "all_modalities auc")
+colnames(cv) <- c("predictor", c(1:15))
+cv$predictor <- c("wrist_bvp", "wrist_bvp","wrist_physio", "wrist_physio", "chest_ecg", "chest_ecg", "chest_physio", "chest_physio", "all_wrist", "all_wrist", "all_chest", "all_chest", "all_physio", "all_physio", "all_modalities", "all_modalities")
+
+for(i in 1:8){
+  for (j in 1:15){
+    set.seed(1)
+    test = subset(data, id == j)
+    train = subset(data, id != j)
+    
+    test_sample = test
+    train_sample = train
+    
+    predictor = cv$predictor[(i-1)*2+1]
+    predictors = eval(parse(text = predictor))
+    model_lda <- lda(as.formula(paste("label ~ ", paste(c(eval(parse(text = predictor_vars[1])), predictors), collapse = ' + '))), data = train_sample)
+    predict_lda <- predict(model_lda, test_sample)[[1]]
+    acc = mean(test_sample$label == predict_lda)*100
+    auc = AUC(as.numeric(as.character(predict_lda)), as.numeric(as.character(test_sample$label)))
+    
+    cv[(i-1)*2+1,j+1] <- acc
+    cv[(i-1)*2+2,j+1] <- auc
+  }
+}
+
+rowMeans(cv[,c(2:16)])
+rowSds(as.matrix(cv[,c(2:16)]))
+
+
+
+
+
 
